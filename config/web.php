@@ -13,8 +13,10 @@ $config = [
     ],
     'components' => [
         'request' => [
-            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'qv8U4cZTVenHWQsZvuxV1pefEowxcIAo',
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser',
+            ]
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -43,14 +45,18 @@ $config = [
             ],
         ],
         'db' => $db,
-        /*
         'urlManager' => [
             'enablePrettyUrl' => true,
+            'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
+                'DELETE projects/<id:\d+>' => 'projects/delete',
+                'GET projects/<id:\d+>' => 'projects/view',
+                'PUT,PATCH projects/<id:\d+>' => 'projects/update',
+                'POST projects' => 'projects/create',
+                'GET projects' => 'projects/index',
             ],
         ],
-        */
     ],
     'params' => $params,
 ];
