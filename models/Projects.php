@@ -87,58 +87,97 @@ class Projects extends \yii\db\ActiveRecord
     }
 
     /**
-     * @param $project
-     * @param $contacts
+     * @param $data
      * @return int
      * @throws \Exception
      */
-    public static function _create($project, $contacts)
+    public static function make($data)
     {
+        if (!$data['contacts']) {
+
+            throw new \Exception('There must be at least one contact');
+        }
+        if (!$data['name'] || !preg_match('/^[a-zA-Z\s]{5,50}$/', $data['name'])) {
+
+            throw new \Exception('Enter the correct field NAME');
+        }
+        if (!$data['code'] || !preg_match('/^[a-z]{3,10}$/', $data['code'])) {
+
+            throw new \Exception('Enter the correct field CODE');
+        }
+        if (!$data['url'] || !filter_var($data['url'], FILTER_VALIDATE_URL)) {
+
+            throw new \Exception('Enter the correct field URL');
+        }
+        if (!$data['budget'] || !filter_var($data['budget'], FILTER_VALIDATE_INT)) {
+
+            throw new \Exception('Enter the correct field BUDGET');
+        }
+
+        $contacts = [];
+        foreach ($data['contacts'] as $contact) {
+
+            if (!$contact['firstName']) {
+
+                throw new \Exception('The field firstName must not be empty');
+            }
+            if (!$contact['lastName']) {
+
+                throw new \Exception('The field lastName must not be empty');
+            }
+
+            $pattern = '/^\+(\d){3}\s\((\d){2}\)\s(\d){3}-(\d){2}-(\d){2}$/';
+            if (!$contact['phone'] || !preg_match($pattern, $contact['phone'])) {
+
+                throw new \Exception('Enter the correct field PHONE');
+            }
+
+            $contacts[] = [
+                'firstName' => $contact['firstName'],
+                'lastName' => $contact['lastName'],
+                'phone' => $contact['phone'],
+            ];
+        }
+
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
-            $newProject = new self();
-            $newProject->name = $project['name'];
-            $newProject->code = $project['code'];
-            $newProject->url = $project['url'];
-            $newProject->budget = $project['budget'];
-
-            if (!$newProject->save()) {
-                $transaction->rollBack();
-
-                throw new \Exception('Failed to add project');
-            }
+            $project = new self();
+            $project->name = $data['name'];
+            $project->code = $data['code'];
+            $project->url = $data['url'];
+            $project->budget = $data['budget'];
+            $project->save();
 
             $insertData = [];
             foreach ($contacts as $value) {
                 $insertData[] = [
-                    $newProject->id,
+                    $project->id,
                     $value['firstName'],
                     $value['lastName'],
                     $value['phone'],
                 ];
             }
 
-            $insertedCount = Yii::$app->db->createCommand()->batchInsert(
+            Yii::$app->db->createCommand()->batchInsert(
                 Contacts::tableName(),
-                ['project_id', 'firstName', 'lastName', 'phone'],
+                [
+                    'project_id',
+                    'firstName',
+                    'lastName',
+                    'phone'
+                ],
                 $insertData
             )->execute();
-
-            if (count($insertData) != $insertedCount) {
-                $transaction->rollBack();
-
-                throw new \Exception('Contacts add failed to complete');
-            }
 
             $transaction->commit();
         } catch(\Exception $e) {
             $transaction->rollBack();
 
-            throw new \Exception($e->getMessage());
+            throw $e;
         }
 
-        return $newProject->id;
+        return $project->id;
     }
 
     /**
@@ -147,23 +186,22 @@ class Projects extends \yii\db\ActiveRecord
      * @return int
      * @throws \Exception
      */
-    public static function _update($id, $data)
+    public static function change($id, $data)
     {
         if (!$project = self::findOne($id)) {
+
             throw new \Exception('Project could not be changed');
         }
-        if ($data['name']) {
+        if ($data['name'] && preg_match('/^[a-zA-Z\s]{5,50}$/', $data['name'])) {
             $project->name = $data['name'];
         }
-        if ($data['url']) {
+        if ($data['url'] && filter_var($data['url'], FILTER_VALIDATE_URL)) {
             $project->url = $data['url'];
         }
-        if ($data['budget']) {
+        if ($data['budget'] && filter_var($data['budget'], FILTER_VALIDATE_INT)) {
             $project->budget = $data['budget'];
         }
-        if (!$project->save()) {
-            throw new \Exception('Project could not be changed');
-        }
+        $project->save();
 
         return $project->id;
     }
@@ -172,20 +210,18 @@ class Projects extends \yii\db\ActiveRecord
      * @param $id
      * @throws \Throwable
      */
-    public static function _delete($id)
+    public static function remove($id)
     {
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
             if (!Contacts::deleteAll(['project_id' => $id])) {
-                $transaction->rollBack();
 
-                throw new \Exception('Project could not be deleted');
+                throw new \Exception('Contacts could not be deleted');
             }
 
             $project = self::findOne($id);
             if (!$project->delete()) {
-                $transaction->rollBack();
 
                 throw new \Exception('Project could not be deleted');
             }
@@ -194,7 +230,7 @@ class Projects extends \yii\db\ActiveRecord
         } catch(\Exception $e) {
             $transaction->rollBack();
 
-            throw new \Exception($e->getMessage());
+            throw $e;
         }
     }
 }

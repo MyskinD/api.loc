@@ -14,6 +14,9 @@ $config = [
     'components' => [
         'request' => [
             'cookieValidationKey' => 'qv8U4cZTVenHWQsZvuxV1pefEowxcIAo',
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser',
+            ]
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -52,7 +55,7 @@ $config = [
                 'PUT,PATCH projects/<id:\d+>' => 'projects/update',
                 'POST projects' => 'projects/create',
                 'GET projects' => 'projects/index',
-                'GET /' => 'site/index',
+//                'GET /' => 'site/index',
             ],
         ],
     ],
