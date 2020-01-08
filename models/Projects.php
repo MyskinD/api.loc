@@ -65,21 +65,14 @@ class Projects extends \yii\db\ActiveRecord
 
     /**
      * @return array|\yii\db\ActiveRecord[]
-     * @throws NotFoundHttpException
      */
     public static function getProjects()
     {
-        $projects = self::find()
+        return self::find()
             ->with('contacts')
             ->asArray()
             ->all()
         ;
-        if (is_null($projects)) {
-
-            throw new NotFoundHttpException('Projects was not found');
-        }
-
-        return $projects;
     }
 
     /**
@@ -198,6 +191,7 @@ class Projects extends \yii\db\ActiveRecord
      * @param int $id
      * @param array $data
      * @return int
+     * @throws BadRequestHttpException
      * @throws NotFoundHttpException
      */
     public static function change(int $id, array $data): int
@@ -206,13 +200,25 @@ class Projects extends \yii\db\ActiveRecord
 
             throw new NotFoundHttpException('Project was not found');
         }
-        if ($data['name'] && preg_match('/^[a-zA-Z\s]{5,50}$/', $data['name'])) {
+        if ($data['name']) {
+            if (!preg_match('/^[a-zA-Z\s]{5,50}$/', $data['name'])) {
+
+                throw new BadRequestHttpException('Enter the correct field NAME');
+            }
             $project->name = $data['name'];
         }
-        if ($data['url'] && filter_var($data['url'], FILTER_VALIDATE_URL)) {
+        if ($data['url']) {
+            if (!filter_var($data['url'], FILTER_VALIDATE_URL)) {
+
+                throw new BadRequestHttpException('Enter the correct field URL');
+            }
             $project->url = $data['url'];
         }
-        if ($data['budget'] && filter_var($data['budget'], FILTER_VALIDATE_INT)) {
+        if ($data['budget']) {
+            if (!filter_var($data['budget'], FILTER_VALIDATE_INT)) {
+
+                throw new BadRequestHttpException('Enter the correct field BUDGET');
+            }
             $project->budget = $data['budget'];
         }
         $project->save();
