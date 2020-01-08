@@ -55,7 +55,7 @@ $config = [
                 'PUT,PATCH projects/<id:\d+>' => 'projects/update',
                 'POST projects' => 'projects/create',
                 'GET projects' => 'projects/index',
-//                'GET /' => 'site/index',
+                'GET /' => 'site/index',
             ],
         ],
     ],

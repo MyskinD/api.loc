@@ -3,6 +3,9 @@
 namespace app\models;
 
 use Yii;
+use Exception;
+use yii\web\NotFoundHttpException;
+use yii\web\BadRequestHttpException;
 
 /**
  * This is the model class for table "projects".
@@ -62,76 +65,87 @@ class Projects extends \yii\db\ActiveRecord
 
     /**
      * @return array|\yii\db\ActiveRecord[]
+     * @throws NotFoundHttpException
      */
     public static function getProjects()
     {
-        return self::find()
+        $projects = self::find()
             ->with('contacts')
             ->asArray()
             ->all()
         ;
+        if (is_null($projects)) {
+
+            throw new NotFoundHttpException('Projects was not found');
+        }
+
+        return $projects;
     }
 
     /**
-     * @param $id
+     * @param int $id
      * @return array|null|\yii\db\ActiveRecord
+     * @throws NotFoundHttpException
      */
-    public static function getProject($id)
+    public static function getProject(int $id)
     {
-        return self::find()
+        $project = self::find()
             ->with('contacts')
             ->where(['id' => $id])
             ->asArray()
             ->one()
         ;
+        if (is_null($project)) {
+
+            throw new NotFoundHttpException('Project was not found');
+        }
+
+        return $project;
     }
 
     /**
-     * @param $data
+     * @param array $data
      * @return int
-     * @throws \Exception
+     * @throws BadRequestHttpException
      */
-    public static function make($data)
+    public static function make(array $data): int
     {
         if (!$data['contacts']) {
 
-            throw new \Exception('There must be at least one contact');
+            throw new BadRequestHttpException('There must be at least one contact');
         }
         if (!$data['name'] || !preg_match('/^[a-zA-Z\s]{5,50}$/', $data['name'])) {
 
-            throw new \Exception('Enter the correct field NAME');
+            throw new BadRequestHttpException('Enter the correct field NAME');
         }
         if (!$data['code'] || !preg_match('/^[a-z]{3,10}$/', $data['code'])) {
 
-            throw new \Exception('Enter the correct field CODE');
+            throw new BadRequestHttpException('Enter the correct field CODE');
         }
         if (!$data['url'] || !filter_var($data['url'], FILTER_VALIDATE_URL)) {
 
-            throw new \Exception('Enter the correct field URL');
+            throw new BadRequestHttpException('Enter the correct field URL');
         }
         if (!$data['budget'] || !filter_var($data['budget'], FILTER_VALIDATE_INT)) {
 
-            throw new \Exception('Enter the correct field BUDGET');
+            throw new BadRequestHttpException('Enter the correct field BUDGET');
         }
 
         $contacts = [];
         foreach ($data['contacts'] as $contact) {
-
             if (!$contact['firstName']) {
 
-                throw new \Exception('The field firstName must not be empty');
+                throw new BadRequestHttpException('The field firstName must not be empty');
             }
             if (!$contact['lastName']) {
 
-                throw new \Exception('The field lastName must not be empty');
+                throw new BadRequestHttpException('The field lastName must not be empty');
             }
-
             $pattern = '/^\+(\d){3}\s\((\d){2}\)\s(\d){3}-(\d){2}-(\d){2}$/';
             if (!$contact['phone'] || !preg_match($pattern, $contact['phone'])) {
 
-                throw new \Exception('Enter the correct field PHONE');
+                throw new BadRequestHttpException('Enter the correct field PHONE');
             }
-
             $contacts[] = [
                 'firstName' => $contact['firstName'],
                 'lastName' => $contact['lastName'],
@@ -171,26 +185,26 @@ class Projects extends \yii\db\ActiveRecord
             )->execute();
 
             $transaction->commit();
-        } catch(\Exception $e) {
+        } catch(Exception $exception) {
             $transaction->rollBack();
 
-            throw $e;
+            throw $exception;
         }
 
         return $project->id;
     }
 
     /**
-     * @param $id
-     * @param $data
+     * @param int $id
+     * @param array $data
      * @return int
-     * @throws \Exception
+     * @throws NotFoundHttpException
      */
-    public static function change($id, $data)
+    public static function change(int $id, array $data): int
     {
         if (!$project = self::findOne($id)) {
 
-            throw new \Exception('Project could not be changed');
+            throw new NotFoundHttpException('Project was not found');
         }
         if ($data['name'] && preg_match('/^[a-zA-Z\s]{5,50}$/', $data['name'])) {
             $project->name = $data['name'];
@@ -207,30 +221,31 @@ class Projects extends \yii\db\ActiveRecord
     }
 
     /**
-     * @param $id
+     * @param int $id
+     * @throws NotFoundHttpException
      * @throws \Throwable
+     * @throws \yii\db\Exception
+     * @throws \yii\db\StaleObjectException
      */
-    public static function remove($id)
+    public static function remove(int $id)
     {
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
-            if (!Contacts::deleteAll(['project_id' => $id])) {
-
-                throw new \Exception('Contacts could not be deleted');
-            }
+            Contacts::deleteAll(['project_id' => $id]);
 
             $project = self::findOne($id);
-            if (!$project->delete()) {
+            if (is_null($project)) {
 
-                throw new \Exception('Project could not be deleted');
+                throw new NotFoundHttpException('Project was not found');
             }
 
+            $project->delete();
             $transaction->commit();
-        } catch(\Exception $e) {
+        } catch(NotFoundHttpException $exception) {
             $transaction->rollBack();
 
-            throw $e;
+            throw $exception;
         }
     }
 }

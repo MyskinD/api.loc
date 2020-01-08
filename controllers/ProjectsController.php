@@ -5,7 +5,8 @@ namespace app\controllers;
 use app\models\Projects;
 use yii\base\Controller;
 use Yii;
-
+use yii\web\NotFoundHttpException;
+use yii\web\BadRequestHttpException;
 
 class ProjectsController extends Controller
 {
@@ -25,11 +26,13 @@ class ProjectsController extends Controller
      */
     function actionIndex()
     {
-        return [
-            'success' => true,
-            'data' => Projects::getProjects(),
-            'error' => null
-        ];
+        try {
+
+            return Projects::getProjects();
+        } catch(NotFoundHttpException $exception) {
+            Yii::$app->response->statusCode = 404;
+            Yii::$app->response->data = ['error' => $exception->getMessage()];
+        }
     }
 
     /**
@@ -39,15 +42,18 @@ class ProjectsController extends Controller
     {
         $id = Yii::$app->request->get('id');
 
-        return [
-            'success' => true,
-            'data' => Projects::getProject($id),
-            'error' => null
-        ];
+        try {
+
+            return Projects::getProject($id);
+        } catch(NotFoundHttpException $exception) {
+            Yii::$app->response->statusCode = 404;
+            Yii::$app->response->data = ['error' => $exception->getMessage()];
+        }
     }
 
     /**
      * @return array|null|\yii\db\ActiveRecord
+     * @throws NotFoundHttpException
      */
     function actionCreate()
     {
@@ -55,20 +61,12 @@ class ProjectsController extends Controller
 
         try {
             $id = Projects::make($data);
-        } catch (\Exception $e) {
 
-            return [
-                'success' => false,
-                'data' => [],
-                'error' => $e->getMessage()
-            ];
+            return Projects::getProject($id);
+        } catch (BadRequestHttpException $exception) {
+            Yii::$app->response->statusCode = 400;
+            Yii::$app->response->data = ['error' => $exception->getMessage()];
         }
-
-        return [
-            'success' => true,
-            'data' => Projects::getProject($id),
-            'error' => null
-        ];
     }
 
     /**
@@ -81,25 +79,19 @@ class ProjectsController extends Controller
 
         try {
             $id = Projects::change($id, $data);
-        } catch (\Exception $e) {
 
-            return [
-                'success' => false,
-                'data' => [],
-                'error' => $e->getMessage()
-            ];
+            return Projects::getProject($id);
+        } catch (NotFoundHttpException $exception) {
+            Yii::$app->response->statusCode = 404;
+            Yii::$app->response->data = ['error' => $exception->getMessage()];
         }
-
-        return [
-            'success' => true,
-            'data' => Projects::getProject($id),
-            'error' => null
-        ];
     }
 
     /**
      * @return array
      * @throws \Throwable
+     * @throws \yii\db\Exception
+     * @throws \yii\db\StaleObjectException
      */
     function actionDelete()
     {
@@ -107,19 +99,11 @@ class ProjectsController extends Controller
 
         try {
             Projects::remove($id);
-        } catch (\Exception $e) {
 
-            return [
-                'success' => false,
-                'data' => [],
-                'error' => $e->getMessage()
-            ];
+            return [];
+        } catch (NotFoundHttpException $exception) {
+            Yii::$app->response->statusCode = 404;
+            Yii::$app->response->data = ['error' => $exception->getMessage()];
         }
-
-        return [
-            'success' => true,
-            'data' => [],
-            'error' => null
-        ];
     }
 }
