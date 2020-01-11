@@ -2,11 +2,11 @@
 
 namespace app\controllers;
 
-use app\models\Projects;
+use app\services\ProjectsService;
 use yii\base\Controller;
 use Yii;
-use yii\web\NotFoundHttpException;
 use yii\web\BadRequestHttpException;
+use yii\web\NotFoundHttpException;
 
 class ProjectsController extends Controller
 {
@@ -21,54 +21,81 @@ class ProjectsController extends Controller
         return parent::beforeAction($action);
     }
 
-    function actionIndex()
+    /**
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function actionIndex()
     {
-        Yii::$app->response->statusCode = 200;
-        Yii::$app->response->data = Projects::getProjects();
+        $model = new ProjectsService();
+
+        return $model->all();
     }
 
-    function actionView()
+    /**
+     * @return array
+     */
+    public function actionView()
     {
         $id = Yii::$app->request->get('id');
 
         try {
-            Yii::$app->response->statusCode = 200;
-            Yii::$app->response->data = Projects::getProject($id);
+            $model = new ProjectsService();
+
+            return $model->get($id);
         } catch(NotFoundHttpException $exception) {
             Yii::$app->response->statusCode = 404;
-            Yii::$app->response->data = ['error' => $exception->getMessage()];
+
+            return [
+                'error' => $exception->getMessage()
+            ];
         }
     }
 
-    function actionCreate()
+    /**
+     * @return array
+     * @throws NotFoundHttpException
+     */
+    public function actionCreate()
     {
         $data = Yii::$app->request->post();
 
         try {
-            $id = Projects::make($data);
-            Yii::$app->response->statusCode = 200;
-            Yii::$app->response->data = Projects::getProject($id);
+            $model = new ProjectsService();
+
+            return $model->get($model->add($data));
         } catch (BadRequestHttpException $exception) {
             Yii::$app->response->statusCode = 400;
-            Yii::$app->response->data = ['error' => $exception->getMessage()];
+
+            return [
+                'error' => $exception->getMessage()
+            ];
         }
     }
 
-    function actionUpdate()
+    /**
+     * @return array
+     */
+    public function actionUpdate()
     {
         $id = Yii::$app->request->get('id');
         $data = Yii::$app->request->post();
 
         try {
-            $id = Projects::change($id, $data);
-            Yii::$app->response->statusCode = 200;
-            Yii::$app->response->data = Projects::getProject($id);
+            $model = new ProjectsService();
+
+            return $model->get($model->save($id, $data));
         } catch (NotFoundHttpException $exception) {
             Yii::$app->response->statusCode = 404;
-            Yii::$app->response->data = ['error' => $exception->getMessage()];
+
+            return [
+                'error' => $exception->getMessage()
+            ];
         } catch (BadRequestHttpException $exception) {
             Yii::$app->response->statusCode = 400;
-            Yii::$app->response->data = ['error' => $exception->getMessage()];
+
+            return [
+                'error' => $exception->getMessage()
+            ];
         }
     }
 
@@ -78,17 +105,22 @@ class ProjectsController extends Controller
      * @throws \yii\db\Exception
      * @throws \yii\db\StaleObjectException
      */
-    function actionDelete()
+    public function actionDelete()
     {
         $id = Yii::$app->request->get('id');
 
         try {
-            Projects::remove($id);
-            Yii::$app->response->statusCode = 200;
-            Yii::$app->response->data = [];
+            (new ProjectsService())->remove($id);
+
+            return [
+                'success' => true
+            ];
         } catch (NotFoundHttpException $exception) {
             Yii::$app->response->statusCode = 404;
-            Yii::$app->response->data = ['error' => $exception->getMessage()];
+
+            return [
+                'error' => $exception->getMessage()
+            ];
         }
     }
 }
