@@ -11,6 +11,13 @@ $config = [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
+    'container' => [
+        'singletons' => [
+//            'app\repositories\EmployeeRepository' => ['class' => 'app\repositories\YiiEmployeeRepository'],
+//            'app\dispatchers\EventDispatcher' => ['class' => 'app\dispatchers\MailEventDispatcher'],
+            'ProjectsService' => ['class' => 'app\services\ProjectsService'],
+        ],
+    ],
     'components' => [
         'request' => [
             'cookieValidationKey' => 'qv8U4cZTVenHWQsZvuxV1pefEowxcIAo',
@@ -55,7 +62,7 @@ $config = [
                 'PUT,PATCH projects/<id:\d+>' => 'projects/update',
                 'POST projects' => 'projects/create',
                 'GET projects' => 'projects/index',
-                'GET /' => 'site/index',
+                'GET /' => 'projects/index',
             ],
         ],
     ],

@@ -5,11 +5,32 @@ namespace app\controllers;
 use app\services\ProjectsService;
 use yii\base\Controller;
 use Yii;
+use yii\base\Module;
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 
 class ProjectsController extends Controller
 {
+    protected $projectsService;
+
+    /**
+     * ProjectsController constructor.
+     * @param $id
+     * @param Module $module
+     * @param ProjectsService $projectsService
+     * @param array $config
+     */
+    public function __construct
+    (
+        $id,
+        Module $module,
+        ProjectsService $projectsService,
+        array $config = []
+    ) {
+        parent::__construct($id, $module, $config);
+        $this->projectsService = $projectsService;
+    }
+
     /**
      * @param \yii\base\Action $action
      * @return bool
@@ -22,13 +43,22 @@ class ProjectsController extends Controller
     }
 
     /**
+     * @param string $message
+     * @return array
+     */
+    protected  function error(string $message): array
+    {
+        return [
+            'error' => $message
+        ];
+    }
+
+    /**
      * @return array|\yii\db\ActiveRecord[]
      */
     public function actionIndex()
     {
-        $model = new ProjectsService();
-
-        return $model->all();
+        return $this->projectsService->getAll();
     }
 
     /**
@@ -39,15 +69,12 @@ class ProjectsController extends Controller
         $id = Yii::$app->request->get('id');
 
         try {
-            $model = new ProjectsService();
 
-            return $model->get($id);
+            return $this->projectsService->get($id);
         } catch(NotFoundHttpException $exception) {
             Yii::$app->response->statusCode = 404;
 
-            return [
-                'error' => $exception->getMessage()
-            ];
+            return $this->error($exception->getMessage());
         }
     }
 
@@ -60,15 +87,13 @@ class ProjectsController extends Controller
         $data = Yii::$app->request->post();
 
         try {
-            $model = new ProjectsService();
+            $project = $this->projectsService->add($data);
 
-            return $model->get($model->add($data));
+            return $this->projectsService->get($project->id);
         } catch (BadRequestHttpException $exception) {
             Yii::$app->response->statusCode = 400;
 
-            return [
-                'error' => $exception->getMessage()
-            ];
+            return $this->error($exception->getMessage());
         }
     }
 
@@ -81,21 +106,17 @@ class ProjectsController extends Controller
         $data = Yii::$app->request->post();
 
         try {
-            $model = new ProjectsService();
+            $project = $this->projectsService->save($id, $data);
 
-            return $model->get($model->save($id, $data));
+            return $this->projectsService->get($project->id);
         } catch (NotFoundHttpException $exception) {
             Yii::$app->response->statusCode = 404;
 
-            return [
-                'error' => $exception->getMessage()
-            ];
+            return $this->error($exception->getMessage());
         } catch (BadRequestHttpException $exception) {
             Yii::$app->response->statusCode = 400;
 
-            return [
-                'error' => $exception->getMessage()
-            ];
+            return $this->error($exception->getMessage());
         }
     }
 
@@ -118,9 +139,7 @@ class ProjectsController extends Controller
         } catch (NotFoundHttpException $exception) {
             Yii::$app->response->statusCode = 404;
 
-            return [
-                'error' => $exception->getMessage()
-            ];
+            return $this->error($exception->getMessage());
         }
     }
 }

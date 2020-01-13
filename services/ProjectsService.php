@@ -14,7 +14,7 @@ class ProjectsService
     /**
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function all(): array
+    public function getAll(): array
     {
         return Projects::find()
             ->with('contacts')
@@ -48,7 +48,7 @@ class ProjectsService
      * @return int
      * @throws BadRequestHttpException
      */
-    public function add(array $data): int
+    public function add(array $data): Projects
     {
         if (!$data['contacts']) {
 
@@ -131,7 +131,7 @@ class ProjectsService
             throw $exception;
         }
 
-        return $project->id;
+        return $project;
     }
 
     /**
@@ -141,7 +141,7 @@ class ProjectsService
      * @throws BadRequestHttpException
      * @throws NotFoundHttpException
      */
-    public function save(int $id, array $data): int
+    public function save(int $id, array $data): Projects
     {
         if (!$project = Projects::findOne($id)) {
 
@@ -170,7 +170,7 @@ class ProjectsService
         }
         $project->save();
 
-        return $project->id;
+        return $project;
     }
 
     /**
@@ -180,7 +180,7 @@ class ProjectsService
      * @throws \yii\db\Exception
      * @throws \yii\db\StaleObjectException
      */
-    public function remove(int $id)
+    public function remove(int $id): void
     {
         $transaction = Yii::$app->db->beginTransaction();
 
