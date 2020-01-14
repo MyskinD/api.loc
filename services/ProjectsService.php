@@ -4,6 +4,8 @@ namespace app\services;
 
 use app\models\Contacts;
 use app\models\Projects;
+use app\repositories\ContactRepository;
+use app\repositories\ProjectRepository;
 use yii\web\NotFoundHttpException;
 use yii\web\BadRequestHttpException;
 use Exception;
@@ -11,15 +13,29 @@ use Yii;
 
 class ProjectsService
 {
+    /** @var ProjectRepository */
+    private $projectRepository;
+
+    /** @var ContactRepository */
+    private $contactRepository;
+
     /**
-     * @return array|\yii\db\ActiveRecord[]
+     * ProjectsService constructor.
+     * @param ProjectRepository $projectRepository
+     * @param ContactRepository $contactRepository
      */
-    public function getAll(): array
+    public function __construct(ProjectRepository $projectRepository, ContactRepository $contactRepository)
     {
-        return Projects::find()
-            ->with('contacts')
-            ->asArray()
-            ->all();
+        $this->projectRepository = $projectRepository;
+        $this->contactRepository = $contactRepository;
+    }
+
+    /**
+     * @return array
+     */
+    public function getProjects(): array
+    {
+        return $this->projectRepository->all();
     }
 
     /**
@@ -27,14 +43,9 @@ class ProjectsService
      * @return array
      * @throws NotFoundHttpException
      */
-    public function get(int $id): array
+    public function getProject(int $id): array
     {
-        $project = Projects::find()
-            ->with('contacts')
-            ->where(['id' => $id])
-            ->asArray()
-            ->one()
-        ;
+        $project = $this->projectRepository->get($id);
         if (is_null($project)) {
 
             throw new NotFoundHttpException('Project was not found');
@@ -45,10 +56,10 @@ class ProjectsService
 
     /**
      * @param array $data
-     * @return int
+     * @return array
      * @throws BadRequestHttpException
      */
-    public function add(array $data): Projects
+    public function setProject(array $data): array
     {
         if (!$data['contacts']) {
 
@@ -96,12 +107,7 @@ class ProjectsService
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
-            $project = new Projects();
-            $project->name = $data['name'];
-            $project->code = $data['code'];
-            $project->url = $data['url'];
-            $project->budget = $data['budget'];
-            $project->save();
+            $project = $this->projectRepository->add($data);
 
             $insertData = [];
             foreach ($contacts as $value) {
@@ -113,16 +119,7 @@ class ProjectsService
                 ];
             }
 
-            Yii::$app->db->createCommand()->batchInsert(
-                Contacts::tableName(),
-                [
-                    'project_id',
-                    'firstName',
-                    'lastName',
-                    'phone'
-                ],
-                $insertData
-            )->execute();
+            $this->contactRepository->add($insertData);
 
             $transaction->commit();
         } catch(Exception $exception) {
@@ -131,46 +128,32 @@ class ProjectsService
             throw $exception;
         }
 
-        return $project;
+        return $this->projectRepository->get($project->id);
     }
 
     /**
      * @param int $id
      * @param array $data
-     * @return int
+     * @return array
      * @throws BadRequestHttpException
-     * @throws NotFoundHttpException
      */
-    public function save(int $id, array $data): Projects
+    public function updateProject(int $id, array $data): array
     {
-        if (!$project = Projects::findOne($id)) {
+        if ($data['name'] && !preg_match('/^[a-zA-Z\s]{5,50}$/', $data['name'])) {
 
-            throw new NotFoundHttpException('Project was not found');
+            throw new BadRequestHttpException('Enter the correct field NAME');
         }
-        if ($data['name']) {
-            if (!preg_match('/^[a-zA-Z\s]{5,50}$/', $data['name'])) {
+        if ($data['url'] && !filter_var($data['url'], FILTER_VALIDATE_URL)) {
 
-                throw new BadRequestHttpException('Enter the correct field NAME');
-            }
-            $project->name = $data['name'];
+            throw new BadRequestHttpException('Enter the correct field URL');
         }
-        if ($data['url']) {
-            if (!filter_var($data['url'], FILTER_VALIDATE_URL)) {
+        if ($data['budget'] && !filter_var($data['budget'], FILTER_VALIDATE_INT)) {
 
-                throw new BadRequestHttpException('Enter the correct field URL');
-            }
-            $project->url = $data['url'];
+            throw new BadRequestHttpException('Enter the correct field BUDGET');
         }
-        if ($data['budget']) {
-            if (!filter_var($data['budget'], FILTER_VALIDATE_INT)) {
+        $this->projectRepository->save($id, $data);
 
-                throw new BadRequestHttpException('Enter the correct field BUDGET');
-            }
-            $project->budget = $data['budget'];
-        }
-        $project->save();
-
-        return $project;
+        return $this->projectRepository->get($id);
     }
 
     /**
@@ -180,20 +163,13 @@ class ProjectsService
      * @throws \yii\db\Exception
      * @throws \yii\db\StaleObjectException
      */
-    public function remove(int $id): void
+    public function deleteProject(int $id): void
     {
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
-            Contacts::deleteAll(['project_id' => $id]);
-
-            $project = Projects::findOne($id);
-            if (is_null($project)) {
-
-                throw new NotFoundHttpException('Project was not found');
-            }
-
-            $project->delete();
+            $this->contactRepository->removeByProjectId($id);
+            $this->projectRepository->remove($id);
             $transaction->commit();
         } catch(NotFoundHttpException $exception) {
             $transaction->rollBack();

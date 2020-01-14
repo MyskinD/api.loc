@@ -13,8 +13,8 @@ $config = [
     ],
     'container' => [
         'singletons' => [
-//            'app\repositories\EmployeeRepository' => ['class' => 'app\repositories\YiiEmployeeRepository'],
-//            'app\dispatchers\EventDispatcher' => ['class' => 'app\dispatchers\MailEventDispatcher'],
+            'ContactRepository' => ['class' => 'app\repositories\ContactRepository'],
+            'ProjectRepository' => ['class' => 'app\repositories\ProjectRepository'],
             'ProjectsService' => ['class' => 'app\services\ProjectsService'],
         ],
     ],
