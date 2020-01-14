@@ -3,9 +3,8 @@
 namespace app\repositories;
 
 use app\models\Projects;
-use yii\db\ActiveRecordInterface;
 
-class ProjectRepository implements RepositoryInterface
+class ProjectRepository implements ProjectRepositoryInterface
 {
     /**
      * @return array
@@ -24,11 +23,17 @@ class ProjectRepository implements RepositoryInterface
      */
     public function get(int $id): array
     {
-        return Projects::find()
-            ->with('contacts')
+        $project = Projects::find()
             ->where(['id' => $id])
             ->asArray()
             ->one();
+
+        if (is_null($project)) {
+
+            throw new NotFoundHttpException('Project was not found');
+        }
+
+        return $project;
     }
 
     /**
@@ -49,22 +54,22 @@ class ProjectRepository implements RepositoryInterface
 
     /**
      * @param int $id
-     * @param array $insertData
+     * @param array $data
      */
-    public function save(int $id, array $insertData): void
+    public function save(int $id, array $data): void
     {
         if (!$project = Projects::findOne($id)) {
 
             throw new NotFoundHttpException('Project was not found');
         }
-        if (isset($insertData['name'])) {
-            $project->name = $insertData['name'];
+        if (isset($data['name'])) {
+            $project->name = $data['name'];
         }
-        if (isset($insertData['url'])) {
-            $project->url = $insertData['url'];
+        if (isset($data['url'])) {
+            $project->url = $data['url'];
         }
-        if (isset($insertData['budget'])) {
-            $project->budget = $insertData['budget'];
+        if (isset($data['budget'])) {
+            $project->budget = $data['budget'];
         }
 
         $project->save();
@@ -78,6 +83,7 @@ class ProjectRepository implements RepositoryInterface
     public function remove(int $id): void
     {
         $project = Projects::findOne($id);
+
         if (is_null($project)) {
 
             throw new NotFoundHttpException('Project was not found');

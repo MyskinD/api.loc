@@ -5,7 +5,7 @@ namespace app\controllers;
 use yii\base\Controller;
 use yii\base\Module;
 
-class DefaultController extends Controller
+abstract class AbstractController extends Controller
 {
     /**
      * DefaultController constructor.
@@ -22,7 +22,7 @@ class DefaultController extends Controller
      * @param string $message
      * @return array
      */
-    protected  function error(string $message): array
+    protected function error(string $message): array
     {
         return [
             'error' => $message

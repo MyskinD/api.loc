@@ -2,15 +2,13 @@
 
 namespace app\models;
 
-use Yii;
-
 /**
  * This is the model class for table "contacts".
  *
  * @property int $id
  * @property int $project_id
- * @property string|null $firstName
- * @property string|null $lastName
+ * @property string|null $first_name
+ * @property string|null $last_name
  * @property string|null $phone
  *
  * @property Projects $project
@@ -33,7 +31,7 @@ class Contacts extends \yii\db\ActiveRecord
         return [
             [['project_id'], 'required'],
             [['project_id'], 'integer'],
-            [['firstName', 'lastName', 'phone'], 'string', 'max' => 50],
+            [['first_name', 'last_name', 'phone'], 'string', 'max' => 50],
             [['project_id'], 'exist', 'skipOnError' => true, 'targetClass' => Projects::className(), 'targetAttribute' => ['project_id' => 'id']],
         ];
     }
@@ -46,8 +44,8 @@ class Contacts extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'project_id' => 'Project ID',
-            'firstName' => 'First Name',
-            'lastName' => 'Last Name',
+            'first_name' => 'First Name',
+            'last_name' => 'Last Name',
             'phone' => 'Phone',
         ];
     }

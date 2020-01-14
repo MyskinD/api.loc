@@ -22,8 +22,8 @@ COLLATE utf8_general_ci;
 CREATE TABLE contacts (
   id int(11) NOT NULL AUTO_INCREMENT,
   project_id int(11) NOT NULL,
-  firstName varchar(50) DEFAULT NULL,
-  lastName varchar(50) DEFAULT NULL,
+  first_name varchar(50) DEFAULT NULL,
+  last_name varchar(50) DEFAULT NULL,
   phone varchar(50) DEFAULT NULL,
   PRIMARY KEY (id)
 )

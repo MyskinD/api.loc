@@ -2,33 +2,33 @@
 
 namespace app\controllers;
 
-use app\services\ProjectsService;
+use app\services\ProjectService;
 use Yii;
 use yii\base\Module;
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 
-class ProjectsController extends DefaultController
+class ProjectsController extends AbstractController
 {
-    /** @var ProjectsService  */
-    protected $projectsService;
+    /** @var ProjectService  */
+    protected $projectService;
 
     /**
      * ProjectsController constructor.
      * @param $id
      * @param Module $module
-     * @param ProjectsService $projectsService
+     * @param ProjectService $projectService
      * @param array $config
      */
     public function __construct
     (
         $id,
         Module $module,
-        ProjectsService $projectsService,
+        ProjectService $projectService,
         array $config = []
     ) {
         parent::__construct($id, $module, $config);
-        $this->projectsService = $projectsService;
+        $this->projectService = $projectService;
     }
 
     /**
@@ -47,7 +47,7 @@ class ProjectsController extends DefaultController
      */
     public function actionIndex()
     {
-        $projects = $this->projectsService->getProjects();
+        $projects = $this->projectService->getProjects();
 
         return $projects;
     }
@@ -60,7 +60,7 @@ class ProjectsController extends DefaultController
         $id = Yii::$app->request->get('id');
 
         try {
-            $project = $this->projectsService->getProject($id);
+            $project = $this->projectService->getProject($id);
 
             return $project;
         } catch(NotFoundHttpException $exception) {
@@ -78,7 +78,7 @@ class ProjectsController extends DefaultController
         $data = Yii::$app->request->post();
 
         try {
-            $project = $this->projectsService->setProject($data);
+            $project = $this->projectService->createProject($data);
 
             return $project;
         } catch (BadRequestHttpException $exception) {
@@ -97,7 +97,7 @@ class ProjectsController extends DefaultController
         $data = Yii::$app->request->post();
 
         try {
-            $project = $this->projectsService->updateProject($id, $data);
+            $project = $this->projectService->updateProject($id, $data);
 
             return $project;
         } catch (NotFoundHttpException $exception) {
@@ -122,7 +122,7 @@ class ProjectsController extends DefaultController
         $id = Yii::$app->request->get('id');
 
         try {
-            $this->projectsService->deleteProject($id);
+            $this->projectService->deleteProject($id);
             Yii::$app->response->statusCode = 204;
         } catch (NotFoundHttpException $exception) {
             Yii::$app->response->statusCode = 404;

@@ -2,10 +2,14 @@
 
 namespace app\repositories;
 
-use yii\db\ActiveRecordInterface;
 
-interface RepositoryInterface
+interface ContactRepositoryInterface
 {
+    /**
+     * @return mixed
+     */
+    public function all();
+
     /**
      * @param int $id
      * @return mixed
@@ -30,4 +34,16 @@ interface RepositoryInterface
      * @return mixed
      */
     public function remove(int $id);
+
+    /**
+     * @param array $data
+     * @return mixed
+     */
+    public function batchAdd(array $data);
+
+    /**
+     * @param int $id
+     * @return mixed
+     */
+    public function removeByProjectId(int $id);
 }

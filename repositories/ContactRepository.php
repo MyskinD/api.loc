@@ -5,7 +5,7 @@ namespace app\repositories;
 use app\models\Contacts;
 use Yii;
 
-class ContactRepository implements RepositoryInterface
+class ContactRepository implements ContactRepositoryInterface
 {
     /**
      * @return array
@@ -23,34 +23,63 @@ class ContactRepository implements RepositoryInterface
      */
     public function get(int $id)
     {
-        return Contacts::find()
+        $contact = Contacts::find()
             ->where(['id' => $id])
             ->asArray()
             ->one();
+
+        if (is_null($contact)) {
+
+            throw new NotFoundHttpException('Contact was not found');
+        }
+
+        return $contact;
     }
 
     /**
-     * @param array $insertData
-     * @return mixed|void
-     * @throws \yii\db\Exception
+     * @param array $data
+     * @return Contacts
      */
-    public function add(array $insertData): void
+    public function add(array $data): Contacts
     {
-        Yii::$app->db->createCommand()->batchInsert(
-            Contacts::tableName(),
-            [
-                'project_id',
-                'firstName',
-                'lastName',
-                'phone'
-            ],
-            $insertData
-        )->execute();
+        if ($data['projectId'] && !is_int($data['projectId'])) {
+            throw new BadRequestHttpException('Invalid projectId');
+        }
+
+        $contact = new Contacts();
+        $contact->project_id = $data['projectId'];
+        $contact->first_name = $data['firstName'];
+        $contact->last_name = $data['lastName'];
+        $contact->phone = $data['phone'];
+        $contact->save();
+
+        return $contact;
     }
 
-    public function save(int $id, array $data)
+    /**
+     * @param int $id
+     * @param array $data
+     */
+    public function save(int $id, array $data):void
     {
-        // TODO: Implement save() method.
+        if (!$contact = Contacts::findOne($id)) {
+
+            throw new NotFoundHttpException('Contact was not found');
+        }
+        if ($data['projectId'] && !is_int($data['projectId'])) {
+            throw new BadRequestHttpException('Invalid projectId');
+        }
+        if (isset($data['firstName'])) {
+            $contact->first_name = $data['firstName'];
+        }
+        if (isset($data['lastName'])) {
+            $contact->last_name = $data['lastName'];
+        }
+        if (isset($data['phone'])) {
+            $contact->phone = $data['phone'];
+        }
+
+        $contact->save();
     }
 
     /**
@@ -61,6 +90,7 @@ class ContactRepository implements RepositoryInterface
     public function remove(int $id): void
     {
         $contact = Contacts::findOne($id);
+
         if (is_null($contact)) {
 
             throw new NotFoundHttpException('Contact was not found');
@@ -70,10 +100,28 @@ class ContactRepository implements RepositoryInterface
     }
 
     /**
-     * @param int $projectId
+     * @param array $data
+     * @throws \yii\db\Exception
      */
-    public function removeByProjectId(int $projectId): void
+    public function batchAdd(array $data): void
     {
-        Contacts::deleteAll(['project_id' => $projectId]);
+        Yii::$app->db->createCommand()->batchInsert(
+            Contacts::tableName(),
+            [
+                'project_id',
+                'first_name',
+                'last_name',
+                'phone'
+            ],
+            $data
+        )->execute();
+    }
+
+    /**
+     * @param int $id
+     */
+    public function removeByProjectId(int $id): void
+    {
+        Contacts::deleteAll(['project_id' => $id]);
     }
 }
