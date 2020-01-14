@@ -4,7 +4,7 @@ namespace app\services;
 
 
 use app\repositories\ContactRepository;
-use app\repositories\ProjectRepositoryInterface;
+use app\repositories\ContactRepositoryInterface;
 
 class ContactService
 {
@@ -12,10 +12,10 @@ class ContactService
     protected $contactRepository;
 
     /**
-     * ProjectsService constructor.
-     * @param ProjectRepositoryInterface $contactRepository
+     * ContactService constructor.
+     * @param ContactRepositoryInterface $contactRepository
      */
-    public function __construct(ProjectRepositoryInterface $contactRepository) {
+    public function __construct(ContactRepositoryInterface $contactRepository) {
         $this->contactRepository = $contactRepository;
     }
 
@@ -27,7 +27,7 @@ class ContactService
     public function createContacts(int $projectId, array $data):void
     {
         $contacts = [];
-        foreach ($data['contacts'] as $contact) {
+        foreach ($data as $contact) {
             if (!$contact['firstName']) {
 
                 throw new BadRequestHttpException('The field firstName must not be empty');
