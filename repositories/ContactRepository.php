@@ -117,4 +117,16 @@ class ContactRepository implements ContactRepositoryInterface
     {
         Contacts::deleteAll(['project_id' => $id]);
     }
+
+    /**
+     * @param int $id
+     * @return array
+     */
+    public function getByProjectId(int $id): array
+    {
+        return Contacts::find()
+            ->where(['project_id' => $id])
+            ->asArray()
+            ->all();
+    }
 }

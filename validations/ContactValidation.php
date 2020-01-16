@@ -4,45 +4,18 @@ namespace app\validations;
 
 use yii\web\BadRequestHttpException;
 
-class ContactValidation
+class ContactValidation extends Validation
 {
     /**
-     * @param $field
+     * @param array $data
      * @throws BadRequestHttpException
      */
-    private function error($field)
+    public function validateOnCreate(array $data): void
     {
-        throw new BadRequestHttpException('Enter the correct field `' . mb_strtoupper($field) . '`');
-    }
-
-    /**
-     * @param string $value
-     * @param string $field
-     * @return bool
-     * @throws BadRequestHttpException
-     */
-    public function isNotNull(string $value, string $field): bool
-    {
-        if (!$value) {
-            throw new BadRequestHttpException('The field `' . mb_strtoupper($field) . '` must not be empty');
-        }
-
-        return true;
-    }
-
-    /**
-     * @param string $pattern
-     * @param string $value
-     * @param string $field
-     * @return bool
-     * @throws BadRequestHttpException
-     */
-    public function isValid(string $pattern, string $value, string $field): bool
-    {
-        if (!preg_match($pattern, $value)) {
-            $this->error($field);
-        }
-
-        return true;
+        $this->isNull($data['firstName'], 'firstName');
+        $this->isNull($data['lastName'], 'lastName');
+        $this->isNull($data['phone'], 'phone');
+        $pattern = '/^\+(\d){3}\s\((\d){2}\)\s(\d){3}-(\d){2}-(\d){2}$/';
+        $this->isRegExp($pattern, $data['phone'], 'phone');
     }
 }

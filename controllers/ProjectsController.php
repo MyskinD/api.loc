@@ -48,6 +48,7 @@ class ProjectsController extends AbstractController
     public function actionIndex()
     {
         $projects = $this->projectService->getProjects();
+        Yii::$app->response->statusCode = 200;
 
         return $projects;
     }
@@ -61,6 +62,7 @@ class ProjectsController extends AbstractController
 
         try {
             $project = $this->projectService->getProject($id);
+            Yii::$app->response->statusCode = 200;
 
             return $project;
         } catch(NotFoundHttpException $exception) {
@@ -72,6 +74,7 @@ class ProjectsController extends AbstractController
 
     /**
      * @return array
+     * @throws NotFoundHttpException
      */
     public function actionCreate()
     {
@@ -79,6 +82,7 @@ class ProjectsController extends AbstractController
 
         try {
             $project = $this->projectService->createProject($data);
+            Yii::$app->response->statusCode = 201;
 
             return $project;
         } catch (BadRequestHttpException $exception) {
@@ -98,6 +102,7 @@ class ProjectsController extends AbstractController
 
         try {
             $project = $this->projectService->updateProject($id, $data);
+            Yii::$app->response->statusCode = 200;
 
             return $project;
         } catch (NotFoundHttpException $exception) {

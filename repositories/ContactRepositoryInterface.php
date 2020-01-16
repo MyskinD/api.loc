@@ -46,4 +46,10 @@ interface ContactRepositoryInterface
      * @return mixed
      */
     public function removeByProjectId(int $id);
+
+    /**
+     * @param int $id
+     * @return mixed
+     */
+    public function getByProjectId(int $id);
 }

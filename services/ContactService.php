@@ -33,41 +33,38 @@ class ContactService
      * @throws \yii\db\Exception
      * @throws \yii\web\BadRequestHttpException
      */
-    public function createContacts(int $projectId, array $data):void
+    public function createContacts(int $projectId, array $data): void
     {
         $contacts = [];
         foreach ($data as $contact) {
-            $this->validation->isNotNull($contact['firstName'], 'firstName');
-            $this->validation->isNotNull($contact['lastName'], 'lastName');
-            $this->validation->isNotNull($contact['phone'], 'phone');
-            $pattern = '/^\+(\d){3}\s\((\d){2}\)\s(\d){3}-(\d){2}-(\d){2}$/';
-            $this->validation->isValid($pattern, $contact['phone'], 'phone');
-
+            $this->validation->validateOnCreate($contact);
             $contacts[] = [
-                'firstName' => $contact['firstName'],
-                'lastName' => $contact['lastName'],
-                'phone' => $contact['phone'],
-            ];
-        }
-
-        $insertData = [];
-        foreach ($contacts as $value) {
-            $insertData[] = [
                 $projectId,
-                $value['firstName'],
-                $value['lastName'],
-                $value['phone'],
+                $contact['firstName'],
+                $contact['lastName'],
+                $contact['phone'],
             ];
         }
 
-        $this->contactRepository->batchAdd($insertData);
+        $this->contactRepository->batchAdd($contacts);
     }
 
     /**
      * @param int $projectId
      */
-    public function removeContactsByProjectId(int $projectId):void
+    public function removeContactsByProjectId(int $projectId): void
     {
         $this->contactRepository->removeByProjectId($projectId);
+    }
+
+    /**
+     * @param int $projectId
+     * @return array
+     */
+    public function getContacts(int $projectId): array
+    {
+        $contacts = $this->contactRepository->getByProjectId($projectId);
+
+        return $contacts;
     }
 }

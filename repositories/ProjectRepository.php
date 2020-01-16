@@ -13,7 +13,6 @@ class ProjectRepository implements ProjectRepositoryInterface
     public function all(): array
     {
         return Projects::find()
-            ->with('contacts')
             ->asArray()
             ->all();
     }

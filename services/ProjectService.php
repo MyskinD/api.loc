@@ -21,6 +21,9 @@ class ProjectService
     /** @var ProjectValidation */
     protected $validation;
 
+    /** @var \yii\db\Connection */
+    protected $db;
+
     /**
      * ProjectService constructor.
      * @param ProjectRepositoryInterface $projectRepository
@@ -36,6 +39,7 @@ class ProjectService
         $this->projectRepository = $projectRepository;
         $this->contactService = $contactService;
         $this->validation = $projectValidation;
+        $this->db = Yii::$app->db;
     }
 
     /**
@@ -43,16 +47,23 @@ class ProjectService
      */
     public function getProjects(): array
     {
-        return $this->projectRepository->all();
+        $projects = $this->projectRepository->all();
+        foreach ($projects as $key => $project) {
+            $projects[$key]['contacts'] = $this->contactService->getContacts($project['id']);
+        }
+
+        return $projects;
     }
 
     /**
      * @param int $id
      * @return array
+     * @throws NotFoundHttpException
      */
     public function getProject(int $id): array
     {
         $project = $this->projectRepository->get($id);
+        $project['contacts'] = $this->contactService->getContacts($project['id']);
 
         return $project;
     }
@@ -61,21 +72,13 @@ class ProjectService
      * @param array $data
      * @return array
      * @throws BadRequestHttpException
+     * @throws NotFoundHttpException
      */
     public function createProject(array $data): array
     {
-        $this->validation->ContactsIsNotNull($data['contacts']);
-        $this->validation->isNotNull($data['name'], 'name');
-        $this->validation->isValid('/^[a-zA-Z\s]{5,50}$/', $data['name'], 'name');
-        $this->validation->isNotNull($data['code'], 'code');
-        $this->validation->isValid('/^[a-z]{3,10}$/', $data['code'], 'code');
-        $this->validation->isNotNull($data['url'], 'url');
-        $this->validation->UrlIsValid($data['url'], 'url');
-        $this->validation->isNotNull($data['budget'], 'budget');
-        $this->validation->isInteger($data['budget'], 'budget');
+        $this->validation->validateOnCreate($data);
 
-        $transaction = Yii::$app->db->beginTransaction();
-
+        $transaction = $this->db->beginTransaction();
         try {
             $project = $this->projectRepository->add($data);
             $this->contactService->createContacts($project->id, $data['contacts']);
@@ -87,7 +90,10 @@ class ProjectService
             throw $exception;
         }
 
-        return $this->projectRepository->get($project->id);
+        $project = $this->projectRepository->get($project->id);
+        $project['contacts'] = $this->contactService->getContacts($project['id']);
+
+        return $project;
     }
 
     /**
@@ -95,22 +101,18 @@ class ProjectService
      * @param array $data
      * @return array
      * @throws BadRequestHttpException
+     * @throws NotFoundHttpException
      */
     public function updateProject(int $id, array $data): array
     {
-        if ($data['name']) {
-            $this->validation->isValid('/^[a-zA-Z\s]{5,50}$/', $data['name'], 'name');
-        }
-        if ($data['url']) {
-            $this->validation->UrlIsValid($data['url'], 'url');
-        }
-        if ($data['budget']) {
-            $this->validation->isInteger($data['budget'], 'budget');
-        }
+        $this->validation->validateOnUpdate($data);
 
         $this->projectRepository->save($id, $data);
 
-        return $this->projectRepository->get($id);
+        $project = $this->projectRepository->get($id);
+        $project['contacts'] = $this->contactService->getContacts($project['id']);
+
+        return $project;
     }
 
     /**
@@ -122,8 +124,7 @@ class ProjectService
      */
     public function deleteProject(int $id): void
     {
-        $transaction = Yii::$app->db->beginTransaction();
-
+        $transaction = $this->db->beginTransaction();
         try {
             $this->contactService->removeContactsByProjectId($id);
             $this->projectRepository->remove($id);
