@@ -3,6 +3,7 @@
 namespace app\repositories;
 
 use app\models\Projects;
+use yii\web\NotFoundHttpException;
 
 class ProjectRepository implements ProjectRepositoryInterface
 {
@@ -20,6 +21,7 @@ class ProjectRepository implements ProjectRepositoryInterface
     /**
      * @param int $id
      * @return array
+     * @throws NotFoundHttpException
      */
     public function get(int $id): array
     {
@@ -55,6 +57,7 @@ class ProjectRepository implements ProjectRepositoryInterface
     /**
      * @param int $id
      * @param array $data
+     * @throws NotFoundHttpException
      */
     public function save(int $id, array $data): void
     {
@@ -62,13 +65,13 @@ class ProjectRepository implements ProjectRepositoryInterface
 
             throw new NotFoundHttpException('Project was not found');
         }
-        if (isset($data['name'])) {
+        if ($data['name']) {
             $project->name = $data['name'];
         }
-        if (isset($data['url'])) {
+        if ($data['url']) {
             $project->url = $data['url'];
         }
-        if (isset($data['budget'])) {
+        if ($data['budget']) {
             $project->budget = $data['budget'];
         }
 
@@ -77,6 +80,7 @@ class ProjectRepository implements ProjectRepositoryInterface
 
     /**
      * @param int $id
+     * @throws NotFoundHttpException
      * @throws \Throwable
      * @throws \yii\db\StaleObjectException
      */

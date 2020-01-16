@@ -4,6 +4,7 @@ namespace app\repositories;
 
 use app\models\Contacts;
 use Yii;
+use yii\web\NotFoundHttpException;
 
 class ContactRepository implements ContactRepositoryInterface
 {
@@ -20,6 +21,7 @@ class ContactRepository implements ContactRepositoryInterface
     /**
      * @param int $id
      * @return array|mixed|null|\yii\db\ActiveRecord
+     * @throws NotFoundHttpException
      */
     public function get(int $id)
     {
@@ -29,7 +31,6 @@ class ContactRepository implements ContactRepositoryInterface
             ->one();
 
         if (is_null($contact)) {
-
             throw new NotFoundHttpException('Contact was not found');
         }
 
@@ -59,40 +60,33 @@ class ContactRepository implements ContactRepositoryInterface
     /**
      * @param int $id
      * @param array $data
+     * @throws NotFoundHttpException
      */
     public function save(int $id, array $data):void
     {
         if (!$contact = Contacts::findOne($id)) {
-
             throw new NotFoundHttpException('Contact was not found');
         }
         if ($data['projectId'] && !is_int($data['projectId'])) {
             throw new BadRequestHttpException('Invalid projectId');
         }
-        if (isset($data['firstName'])) {
-            $contact->first_name = $data['firstName'];
-        }
-        if (isset($data['lastName'])) {
-            $contact->last_name = $data['lastName'];
-        }
-        if (isset($data['phone'])) {
-            $contact->phone = $data['phone'];
-        }
 
+        $contact->first_name = $data['firstName'];
+        $contact->last_name = $data['lastName'];
+        $contact->phone = $data['phone'];
         $contact->save();
     }
 
     /**
      * @param int $id
+     * @throws NotFoundHttpException
      * @throws \Throwable
      * @throws \yii\db\StaleObjectException
      */
     public function remove(int $id): void
     {
         $contact = Contacts::findOne($id);
-
         if (is_null($contact)) {
-
             throw new NotFoundHttpException('Contact was not found');
         }
 
@@ -106,8 +100,7 @@ class ContactRepository implements ContactRepositoryInterface
     public function batchAdd(array $data): void
     {
         Yii::$app->db->createCommand()->batchInsert(
-            Contacts::tableName(),
-            [
+            Contacts::tableName(), [
                 'project_id',
                 'first_name',
                 'last_name',

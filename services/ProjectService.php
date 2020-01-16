@@ -4,6 +4,7 @@ namespace app\services;
 
 use app\repositories\ProjectRepository;
 use app\repositories\ProjectRepositoryInterface;
+use app\validations\ProjectValidation;
 use yii\web\NotFoundHttpException;
 use yii\web\BadRequestHttpException;
 use Exception;
@@ -17,18 +18,24 @@ class ProjectService
     /** @var ContactService */
     protected $contactService;
 
+    /** @var ProjectValidation */
+    protected $validation;
+
     /**
      * ProjectService constructor.
      * @param ProjectRepositoryInterface $projectRepository
      * @param ContactService $contactService
+     * @param ProjectValidation $projectValidation
      */
     public function __construct
     (
         ProjectRepositoryInterface $projectRepository,
-        ContactService $contactService
+        ContactService $contactService,
+        ProjectValidation $projectValidation
     ) {
         $this->projectRepository = $projectRepository;
         $this->contactService = $contactService;
+        $this->validation = $projectValidation;
     }
 
     /**
@@ -57,26 +64,15 @@ class ProjectService
      */
     public function createProject(array $data): array
     {
-        if (!$data['contacts']) {
-
-            throw new BadRequestHttpException('There must be at least one contact');
-        }
-        if (!$data['name'] || !preg_match('/^[a-zA-Z\s]{5,50}$/', $data['name'])) {
-
-            throw new BadRequestHttpException('Enter the correct field NAME');
-        }
-        if (!$data['code'] || !preg_match('/^[a-z]{3,10}$/', $data['code'])) {
-
-            throw new BadRequestHttpException('Enter the correct field CODE');
-        }
-        if (!$data['url'] || !filter_var($data['url'], FILTER_VALIDATE_URL)) {
-
-            throw new BadRequestHttpException('Enter the correct field URL');
-        }
-        if (!$data['budget'] || !filter_var($data['budget'], FILTER_VALIDATE_INT)) {
-
-            throw new BadRequestHttpException('Enter the correct field BUDGET');
-        }
+        $this->validation->ContactsIsNotNull($data['contacts']);
+        $this->validation->isNotNull($data['name'], 'name');
+        $this->validation->isValid('/^[a-zA-Z\s]{5,50}$/', $data['name'], 'name');
+        $this->validation->isNotNull($data['code'], 'code');
+        $this->validation->isValid('/^[a-z]{3,10}$/', $data['code'], 'code');
+        $this->validation->isNotNull($data['url'], 'url');
+        $this->validation->UrlIsValid($data['url'], 'url');
+        $this->validation->isNotNull($data['budget'], 'budget');
+        $this->validation->isInteger($data['budget'], 'budget');
 
         $transaction = Yii::$app->db->beginTransaction();
 
@@ -102,18 +98,16 @@ class ProjectService
      */
     public function updateProject(int $id, array $data): array
     {
-        if ($data['name'] && !preg_match('/^[a-zA-Z\s]{5,50}$/', $data['name'])) {
-
-            throw new BadRequestHttpException('Enter the correct field NAME');
+        if ($data['name']) {
+            $this->validation->isValid('/^[a-zA-Z\s]{5,50}$/', $data['name'], 'name');
         }
-        if ($data['url'] && !filter_var($data['url'], FILTER_VALIDATE_URL)) {
-
-            throw new BadRequestHttpException('Enter the correct field URL');
+        if ($data['url']) {
+            $this->validation->UrlIsValid($data['url'], 'url');
         }
-        if ($data['budget'] && !filter_var($data['budget'], FILTER_VALIDATE_INT)) {
-
-            throw new BadRequestHttpException('Enter the correct field BUDGET');
+        if ($data['budget']) {
+            $this->validation->isInteger($data['budget'], 'budget');
         }
+
         $this->projectRepository->save($id, $data);
 
         return $this->projectRepository->get($id);

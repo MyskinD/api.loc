@@ -17,6 +17,8 @@ $config = [
             'ProjectRepository' => ['class' => 'app\repositories\ProjectRepository'],
             'ProjectService' => ['class' => 'app\services\ProjectService'],
             'ContactService' => ['class' => 'app\services\ContactService'],
+            'ProjectValidation' => ['class' => 'app\validations\ProjectValidation'],
+            'ContactValidation' => ['class' => 'app\validations\ContactValidation'],
             'app\repositories\ProjectRepositoryInterface' => ['class' => 'app\repositories\ProjectRepository'],
             'app\repositories\ContactRepositoryInterface' => ['class' => 'app\repositories\ContactRepository'],
         ],
