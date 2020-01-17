@@ -11,9 +11,9 @@ namespace app\models;
  * @property string|null $last_name
  * @property string|null $phone
  *
- * @property Projects $project
+ * @property Project $project
  */
-class Contacts extends \yii\db\ActiveRecord
+class Contact extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
@@ -21,19 +21,6 @@ class Contacts extends \yii\db\ActiveRecord
     public static function tableName()
     {
         return 'contacts';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['project_id'], 'required'],
-            [['project_id'], 'integer'],
-            [['first_name', 'last_name', 'phone'], 'string', 'max' => 50],
-            [['project_id'], 'exist', 'skipOnError' => true, 'targetClass' => Projects::className(), 'targetAttribute' => ['project_id' => 'id']],
-        ];
     }
 
     /**
@@ -55,6 +42,6 @@ class Contacts extends \yii\db\ActiveRecord
      */
     public function getProject()
     {
-        return $this->hasOne(Projects::className(), ['id' => 'project_id']);
+        return $this->hasOne(Project::className(), ['id' => 'project_id']);
     }
 }

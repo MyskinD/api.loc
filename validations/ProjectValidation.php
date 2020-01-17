@@ -8,7 +8,7 @@ class ProjectValidation extends Validation
 {
     /**
      * @param array $data
-     * @throws BadRequestHttpException
+     * @throws \yii\web\BadRequestHttpException
      */
     public function validateOnCreate(array $data): void
     {
@@ -25,7 +25,7 @@ class ProjectValidation extends Validation
 
     /**
      * @param array $data
-     * @throws BadRequestHttpException
+     * @throws \yii\web\BadRequestHttpException
      */
     public function validateOnUpdate(array $data): void
     {
@@ -47,9 +47,9 @@ class ProjectValidation extends Validation
      * @param array $value
      * @throws BadRequestHttpException
      */
-    protected function isContactsNotNull(array $value): void
+    protected function isContactsNotNull(array $value = []): void
     {
-        if (!$value) {
+        if (empty($value)) {
             throw new BadRequestHttpException('There must be at least one contact');
         }
     }

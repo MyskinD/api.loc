@@ -2,6 +2,7 @@
 
 namespace app\validations;
 
+use yii\web\BadRequestHttpException;
 
 abstract class Validation
 {

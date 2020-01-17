@@ -48,9 +48,6 @@ class ProjectService
     public function getProjects(): array
     {
         $projects = $this->projectRepository->all();
-        foreach ($projects as $key => $project) {
-            $projects[$key]['contacts'] = $this->contactService->getContacts($project['id']);
-        }
 
         return $projects;
     }
@@ -63,7 +60,6 @@ class ProjectService
     public function getProject(int $id): array
     {
         $project = $this->projectRepository->get($id);
-        $project['contacts'] = $this->contactService->getContacts($project['id']);
 
         return $project;
     }
@@ -91,7 +87,6 @@ class ProjectService
         }
 
         $project = $this->projectRepository->get($project->id);
-        $project['contacts'] = $this->contactService->getContacts($project['id']);
 
         return $project;
     }
@@ -106,11 +101,8 @@ class ProjectService
     public function updateProject(int $id, array $data): array
     {
         $this->validation->validateOnUpdate($data);
-
         $this->projectRepository->save($id, $data);
-
         $project = $this->projectRepository->get($id);
-        $project['contacts'] = $this->contactService->getContacts($project['id']);
 
         return $project;
     }

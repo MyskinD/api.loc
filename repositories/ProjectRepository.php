@@ -2,7 +2,7 @@
 
 namespace app\repositories;
 
-use app\models\Projects;
+use app\models\Project;
 use yii\web\NotFoundHttpException;
 
 class ProjectRepository implements ProjectRepositoryInterface
@@ -12,7 +12,7 @@ class ProjectRepository implements ProjectRepositoryInterface
      */
     public function all(): array
     {
-        return Projects::find()
+        return Project::find()
             ->asArray()
             ->all();
     }
@@ -24,7 +24,7 @@ class ProjectRepository implements ProjectRepositoryInterface
      */
     public function get(int $id): array
     {
-        $project = Projects::find()
+        $project = Project::find()
             ->where(['id' => $id])
             ->asArray()
             ->one();
@@ -39,11 +39,11 @@ class ProjectRepository implements ProjectRepositoryInterface
 
     /**
      * @param array $data
-     * @return Projects
+     * @return Project
      */
-    public function add(array $data): Projects
+    public function add(array $data): Project
     {
-        $project = new Projects();
+        $project = new Project();
         $project->name = $data['name'];
         $project->code = $data['code'];
         $project->url = $data['url'];
@@ -60,7 +60,7 @@ class ProjectRepository implements ProjectRepositoryInterface
      */
     public function save(int $id, array $data): void
     {
-        if (!$project = Projects::findOne($id)) {
+        if (!$project = Project::findOne($id)) {
 
             throw new NotFoundHttpException('Project was not found');
         }
@@ -85,7 +85,7 @@ class ProjectRepository implements ProjectRepositoryInterface
      */
     public function remove(int $id): void
     {
-        $project = Projects::findOne($id);
+        $project = Project::findOne($id);
 
         if (is_null($project)) {
 

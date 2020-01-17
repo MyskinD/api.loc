@@ -2,13 +2,11 @@
 
 namespace app\validations;
 
-use yii\web\BadRequestHttpException;
-
 class ContactValidation extends Validation
 {
     /**
      * @param array $data
-     * @throws BadRequestHttpException
+     * @throws \yii\web\BadRequestHttpException
      */
     public function validateOnCreate(array $data): void
     {

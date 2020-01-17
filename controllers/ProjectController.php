@@ -2,22 +2,27 @@
 
 namespace app\controllers;
 
+use app\services\ContactService;
 use app\services\ProjectService;
 use Yii;
 use yii\base\Module;
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 
-class ProjectsController extends AbstractController
+class ProjectController extends AbstractController
 {
     /** @var ProjectService  */
     protected $projectService;
+
+    /** @var ContactService */
+    protected $contactService;
 
     /**
      * ProjectsController constructor.
      * @param $id
      * @param Module $module
      * @param ProjectService $projectService
+     * @param ContactService $contactService
      * @param array $config
      */
     public function __construct
@@ -25,10 +30,12 @@ class ProjectsController extends AbstractController
         $id,
         Module $module,
         ProjectService $projectService,
+        ContactService $contactService,
         array $config = []
     ) {
         parent::__construct($id, $module, $config);
         $this->projectService = $projectService;
+        $this->contactService = $contactService;
     }
 
     /**
@@ -48,6 +55,9 @@ class ProjectsController extends AbstractController
     public function actionIndex()
     {
         $projects = $this->projectService->getProjects();
+        foreach ($projects as $key => $project) {
+            $projects[$key]['contacts'] = $this->contactService->getContacts($project['id']);
+        }
         Yii::$app->response->statusCode = 200;
 
         return $projects;
@@ -62,6 +72,7 @@ class ProjectsController extends AbstractController
 
         try {
             $project = $this->projectService->getProject($id);
+            $project['contacts'] = $this->contactService->getContacts($project['id']);
             Yii::$app->response->statusCode = 200;
 
             return $project;
@@ -82,6 +93,7 @@ class ProjectsController extends AbstractController
 
         try {
             $project = $this->projectService->createProject($data);
+            $project['contacts'] = $this->contactService->getContacts($project['id']);
             Yii::$app->response->statusCode = 201;
 
             return $project;
@@ -102,6 +114,7 @@ class ProjectsController extends AbstractController
 
         try {
             $project = $this->projectService->updateProject($id, $data);
+            $project['contacts'] = $this->contactService->getContacts($project['id']);
             Yii::$app->response->statusCode = 200;
 
             return $project;

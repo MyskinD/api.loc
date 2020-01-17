@@ -11,9 +11,9 @@ namespace app\models;
  * @property string|null $url
  * @property int|null $budget
  *
- * @property Contacts[] $contacts
+ * @property Contact[] $contacts
  */
-class Projects extends \yii\db\ActiveRecord
+class Project extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
@@ -21,19 +21,6 @@ class Projects extends \yii\db\ActiveRecord
     public static function tableName()
     {
         return 'projects';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['budget'], 'integer'],
-            [['name'], 'string', 'max' => 50],
-            [['code'], 'string', 'max' => 10],
-            [['url'], 'string', 'max' => 255],
-        ];
     }
 
     /**
@@ -55,7 +42,7 @@ class Projects extends \yii\db\ActiveRecord
      */
     public function getContacts()
     {
-        return $this->hasMany(Contacts::className(), ['project_id' => 'id']);
+        return $this->hasMany(Contact::className(), ['project_id' => 'id']);
     }
 
 }
